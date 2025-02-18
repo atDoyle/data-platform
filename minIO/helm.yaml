@@ -1,0 +1,61 @@
+apiVersion: v2
+name: minio
+description: MinIO is a high performance object storage solution
+type: application
+version: 1.0.0
+appVersion: "2023-LATEST"
+
+dependencies:
+  - name: minio
+    repository: https://charts.min.io/
+    version: ~12.0.0
+
+values:
+  mode: standalone
+  
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: standard
+  
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2
+    limits:
+      memory: 8Gi
+      cpu: 4
+
+  service:
+    type: ClusterIP
+    port: 9000
+    
+  consoleService:
+    type: ClusterIP
+    port: 9001
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - host: minio.local
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: console.minio.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+  auth:
+    rootUser: admin
+    rootPassword: changeme123
+
+  buckets:
+    - name: data
+      policy: none
+      purge: false
+    - name: spark
+      policy: none 
+      purge: false
