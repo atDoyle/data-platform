@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-ui
+  namespace: spark
+spec:
+  type: NodePort  # or LoadBalancer, depending on your cluster setup
+  ports:
+  - port: 8080
+    targetPort: webui
+    name: webui
+  selector:
+    app: spark-master

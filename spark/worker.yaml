@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-worker
+  namespace: spark
+spec:
+  selector:
+    matchLabels:
+      app: spark-worker
+  replicas: 2  # Adjust number of workers as needed
+  template:
+    metadata:
+      labels:
+        app: spark-worker
+    spec:
+      serviceAccount: spark
+      containers:
+      - name: spark-worker
+        image: apache/spark:3.4.0
+        command: ["/bin/sh", "-c"]
+        args:
+        - "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077"
+        ports:
+        - containerPort: 8081
+          name: webui
+        env:
+        - name: SPARK_MODE
+          value: "worker"
+        - name: SPARK_WORKER_CORES
+          value: "1"
+        - name: SPARK_WORKER_MEMORY
+          value: "1g"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-creds
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-creds
+              key: secret-key
+        volumeMounts:
+        - name: spark-config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+      volumes:
+      - name: spark-config
+        configMap:
+          name: spark-config
