@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-master
+  namespace: spark
+spec:
+  selector:
+    matchLabels:
+      app: spark-master
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: spark-master
+    spec:
+      serviceAccount: spark
+      containers:
+      - name: spark-master
+        image: apache/spark:3.4.0
+        command: ["/bin/sh", "-c"]
+        args:
+        - "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master"
+        ports:
+        - containerPort: 7077
+          name: master
+        - containerPort: 8080
+          name: webui
+        env:
+        - name: SPARK_MODE
+          value: "master"
+        # MinIO credentials.  They are created manually as secrets in the Spark namespace.
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-creds
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-creds
+              key: secret-key
+        volumeMounts:
+        - name: spark-config
+          mountPath: /opt/spark/conf/spark-defaults.conf
+          subPath: spark-defaults.conf
+      volumes:
+      - name: spark-config
+        configMap:
+          name: spark-config
