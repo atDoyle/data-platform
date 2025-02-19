@@ -45,19 +45,3 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: minio-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: minio-service
-  namespace: minio
-spec:
-  ports:
-  - port: 9000
-    targetPort: api
-    name: api
-  - port: 9001
-    targetPort: console
-    name: console
-  selector:
-    app: minio 
