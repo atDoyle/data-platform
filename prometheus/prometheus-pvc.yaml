@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: kafka-storage-class  # Using the same storage class we created earlier
+  resources:
+    requests:
+      storage: 50Gi 
