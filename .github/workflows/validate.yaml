@@ -1,0 +1,29 @@
+name: Validate Kubernetes Manifests
+
+on:
+  pull_request:
+    paths:
+      - 'kafka/**'
+      - 'trino/**'
+      - 'prometheus/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install kubeval
+        run: |
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo cp kubeval /usr/local/bin
+      
+      - name: Validate Kafka manifests
+        run: kubeval kafka/*.yaml
+      
+      - name: Validate Trino manifests
+        run: kubeval trino/*.yaml
+        
+      - name: Validate Prometheus manifests
+        run: kubeval prometheus/*.yaml 

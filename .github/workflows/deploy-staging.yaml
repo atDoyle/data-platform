@@ -1,0 +1,48 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'kafka/**'
+      - 'trino/**'
+      - 'prometheus/**'
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_STAGING }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Deploy Kafka
+        run: |
+          kubectl apply -f kafka/storageclass.yaml
+          kubectl apply -f kafka/configmap.yaml
+          kubectl apply -f kafka/zookeeper-service.yaml
+          kubectl apply -f kafka/zookeeper-deployment.yaml
+          kubectl apply -f kafka/service.yaml
+          kubectl apply -f kafka/statefulset.yaml
+      
+      - name: Deploy Trino
+        run: |
+          kubectl apply -f trino/trino-configmap.yaml
+          kubectl apply -f trino/coordinator-service.yaml
+          kubectl apply -f trino/coordinator-deployment.yaml
+          kubectl apply -f trino/worker-deployment.yaml
+      
+      - name: Deploy Prometheus
+        run: |
+          kubectl apply -f prometheus/prometheus-configmap.yaml
+          kubectl apply -f prometheus/prometheus-rbac.yaml
+          kubectl apply -f prometheus/prometheus-pvc.yaml
+          kubectl apply -f prometheus/prometheus-deployment.yaml
+          kubectl apply -f prometheus/prometheus-service.yaml
